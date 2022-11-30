@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using UnityEngine.Tilemaps;
@@ -46,5 +47,48 @@ public class TileAdjacencyMatrix
         }
 
         return builder.ToString();
+    }
+
+    public static bool operator !=(TileAdjacencyMatrix left, TileAdjacencyMatrix right)
+    {
+        return !(left == right);
+    }
+
+    public static bool operator ==(TileAdjacencyMatrix left, TileAdjacencyMatrix right)
+    {
+        if (left is null)
+        {
+            return right is null;
+        }
+        return left.Equals(right);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public override bool Equals(object obj)
+    {
+        if(obj is TileAdjacencyMatrix other)
+        {
+            for (int i = 0; i < other.Rows.Count; i++)
+            {
+                MatrixRow row = other.Rows[i];
+                for (int j = 0; j < row.Column.Length; j++)
+                {
+                    if (other[i,j ] != this[i,j])
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        else
+        {
+            return false;
+        }
+
+        return true;
     }
 }

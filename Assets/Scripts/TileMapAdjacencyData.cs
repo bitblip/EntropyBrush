@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -77,7 +78,13 @@ public class TileMapAdjacencyData : ScriptableObject
 
     public TileAdjacencyMatrix this[Tile t]
     {
-        get {
+        get 
+        {
+            // Not sure when the right time is to load the data into the lookup
+            if(Adjacencies == null && AdjacenciesList != null && AdjacenciesList.Count > 0)
+            {
+                PrimeDictionary();
+            }
 
             if(t != null&& Adjacencies != null && Adjacencies.ContainsKey(t))
             {

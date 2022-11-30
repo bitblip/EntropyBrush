@@ -14,13 +14,22 @@ public class WaveBrushEditor : GridBrushEditor
 {
     private WaveBrush waveBrush { get { return target as WaveBrush; } }
 
+    public override void OnSelectionInspectorGUI()
+    {
+        GUILayout.Label("Wave tile inspect?");
+        base.OnSelectionInspectorGUI();
+    }
+
     public override void OnPaintSceneGUI(GridLayout grid, GameObject brushTarget, BoundsInt position, GridBrushBase.Tool tool, bool executing)
     {
         base.OnPaintSceneGUI(grid, brushTarget, position, tool, executing);
 
+
         var tileMap = brushTarget.GetComponent<Tilemap>();
         tileMap.ClearAllEditorPreviewTiles();
         // I just wana draw a little square
+        if (tool != GridBrushBase.Tool.Paint)
+            return;
         var pos = position.min;
 
         // Preview what you intend to paint

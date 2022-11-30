@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using static UnityEngine.Tilemaps.Tile;
@@ -11,17 +13,39 @@ public class WaveTile : Tile
 {
     public TileMapAdjacencyData Data;
 
+    public TileAdjacencyMatrix State;
+
     public override void RefreshTile(Vector3Int position, ITilemap tilemap)
     {
-        Debug.Log("Refresh wave tile");
+        // I need to know if my neighbor state has changed so I can propogate
+        // Or, I need to tell my neighbors that i have changed.
         base.RefreshTile(position, tilemap);
+
+        var newState = ComputeStateMatrix(position, tilemap);
+
+        if(newState != State)
+        {
+            State = newState;
+
+            // Convert to a real tile if we can
+
+            // Let hope the framework will trigger this from any neighbor
+            foreach(var neighborVector in Data.NeighborVectors)
+            {
+                if(tilemap.GetTile(position + neighborVector) is WaveTile waveTile)
+                {
+                    Debug.Log("Cascading collapse");
+                    // How do I stop from over cascading?
+                    //waveTile.RefreshTile(position + neighborVector, tilemap);
+                }
+            }
+        }
+
     }
 
     public override bool GetTileAnimationData(Vector3Int position, ITilemap tilemap, ref TileAnimationData tileAnimationData)
     {
-        Debug.Log("Animate wave?");
-        var stateMatrix = ComputeStateMatrix(position, tilemap);
-        var possible = GetPossibleTiles(stateMatrix);
+        var possible = GetPossibleTiles(State);
         var sprites = new List<Sprite>();
         foreach(var t in possible)
         {
@@ -33,6 +57,7 @@ public class WaveTile : Tile
 
         return true;
     }
+        
 
     public override void GetTileData(Vector3Int position, ITilemap tilemap, ref TileData tileData)
     {
@@ -55,13 +80,12 @@ public class WaveTile : Tile
 
         // First, determine is any of this is available in preview
 
-        // TODO: Figure out why N/S are coming out 0 for grass
-        var stateMatrix = ComputeStateMatrix(position, tilemap);
+        State = ComputeStateMatrix(position, tilemap);
         // Conceputally, at this point, statematrix has been zeroed.
         // any survivors are allowed
         // I wish I could visualize this in the inspector
         // Possible if I set a real tile, I think
-        HashSet<Tile> possible = GetPossibleTiles(stateMatrix);
+        HashSet<Tile> possible = GetPossibleTiles(State);
 
 
         // Randomly pick from what is possible
@@ -70,16 +94,21 @@ public class WaveTile : Tile
             var pick = Random.Range(0, possible.Count);
             var tile = possible.ElementAt(pick);
 
+            var confidence = 1 / possible.Count;
+
+            var confidenceColor = Color.Lerp(Color.red, Color.white, confidence);
+
             tileData.sprite = tile.sprite;
-            tileData.color = tile.color;
+            tileData.color = tile.color * confidenceColor;
             tileData.transform = tile.transform;
             tileData.gameObject = tile.gameObject;
             tileData.flags = tile.flags;
             tileData.colliderType = tile.colliderType;
         }
+
     }
 
-    private TileAdjacencyMatrix ComputeStateMatrix(Vector3Int position, ITilemap tilemap)
+    public TileAdjacencyMatrix ComputeStateMatrix(Vector3Int position, ITilemap tilemap)
     {
         var stateMatrix = new TileAdjacencyMatrix(Data.NeighborVectors.Length, Data.AdjacenciesList.Count, null);
         // initialize the state to 1?
@@ -91,27 +120,39 @@ public class WaveTile : Tile
             }
         }
 
-        foreach (var neighor in Data.NeighborVectors)
+        foreach (var neighborVector in Data.NeighborVectors)
         {
-            var nTile = tilemap.GetTile(position + neighor);
-            if (nTile != null)
+            var neighborTile = tilemap.GetTile(position + neighborVector);
+            if (neighborTile != null)
             {
                 // are we neighboring a quantum state or a collapsed state?
-                if (nTile is WaveTile q)
+                if (neighborTile is WaveTile q)
                 {
                     // what does this neighbor tell us about what should go here?
                     // A neighbor wave data is contextually internal, it only has data about what is might be.
-                    // What if I transpose and multiply?
-                    // Better write that out
-                    var data = q.Data;
+
+                    // what does this neighbor tell us about what should go here?
+                    var data = q;
+                    // I need the information from this neighbor that points at me
+                    var neighborState = q.State;
+                    if (neighborState != null)
+                    {
+                        var inboundRow = Data.RowOf(-neighborVector);
+                        var inboundInfo = neighborState.Rows[inboundRow];
+                        // Since this neighbor is a wave tile, we only multiply probability agasint the inbound row
+                        for (int j = 0; j < stateMatrix.Rows[inboundRow].Column.Length; j++)
+                        {
+                            stateMatrix.Rows[inboundRow].Column[j] *= inboundInfo.Column[j];
+                        }
+                    }
 
                 }
-                else if (nTile is Tile collapsed)
+                else if (neighborTile is Tile collapsed)
                 {
                     // what does this neighbor tell us about what should go here?
                     var data = Data[collapsed];
                     // I need the information from this neighbor that points at me
-                    var rowNum = Data.RowOf(-neighor);
+                    var rowNum = Data.RowOf(-neighborVector);
                     var information = data.Rows[rowNum];
                     // Format information in from the incoming perspective
                     // this is opposite the training data.
@@ -120,13 +161,12 @@ public class WaveTile : Tile
                     // vectors such that the collapsed tile can deny impossible probailities.
 
                     // SO... go through every row and apply the rule from impinges from the collapsed direction
-                    var rowTotal = information.Total();
                     for (int i = 0; i < stateMatrix.Rows.Count; i++)
                     {
                         for (int j = 0; j < information.Column.Length; j++)
                         {
-                            var count = information.Column[j];
-                            stateMatrix[i, j] *= (count / rowTotal);
+                            var p = information.Column[j];
+                            stateMatrix[i, j] *= p;
                         }
                     }
                 }
