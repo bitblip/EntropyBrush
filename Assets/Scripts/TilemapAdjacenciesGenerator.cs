@@ -33,12 +33,6 @@ public class TilemapAdjacenciesGenerator : MonoBehaviour
 
     public void InitializeAdjMatrix(TileBase[] tiles)
     {
-
-        // TODO: Care about tilemap dimension assuming NSEW
-
-        // I'm not sure which way to orient the matrix, will try M directions x N tiles first        
-
-        var m = new Dictionary<Tile, int[,]>();
         BrushData.AdjacenciesList = new List<TileAdjacencyMatrix>(tiles.Length);
         foreach (var t in tiles)
         {
@@ -68,7 +62,7 @@ public class TilemapAdjacenciesGenerator : MonoBehaviour
 
         var min = Map.cellBounds.min;
         var max = Map.cellBounds.max;
-        var neighborSet = new Vector3Int[] { Vector3Int.up, Vector3Int.right, Vector3Int.down, Vector3Int.left };
+        var neighborSet = BrushData.NeighborVectors;
         for (int x = min.x; x < max.x; x++)
         {
             for (int y = min.y; y < max.y; y++)
@@ -84,9 +78,14 @@ public class TilemapAdjacenciesGenerator : MonoBehaviour
                     {
                         var neighborVector = neighborSet[row];
                         var tileObs = Map.GetTile(cell + neighborVector);
+
                         if(tileObs != null)
                         {
                             var column = BrushData.ColumnOf((Tile)tileObs);
+                            if(tile.name == "Isometric_MedievalFantasy_Grass" && column == 3)
+                            {
+                                Debug.Log("Grass saw crossroads how?");
+                            }
                             m[row, column] += 1;
 
                             m.Sum += 1;
@@ -102,9 +101,4 @@ public class TilemapAdjacenciesGenerator : MonoBehaviour
         return true;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

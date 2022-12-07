@@ -33,54 +33,7 @@ public class TilemapAdjacencyMatrixEditor : Editor
                     continue;
                 }
 
-                GUILayout.BeginHorizontal();
-
-                Texture2D texture = AssetPreview.GetAssetPreview(t.Tile);
-                GUILayout.Label("", GUILayout.Height(30), GUILayout.Width(30));
-                if(texture != null)
-                {
-                    //Draws the texture where we have defined our Label (empty space)
-                    GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture);
-                }
-
-                GUILayout.Label(t.Tile.name);
-                GUILayout.Label(t.Sum.ToString());
-                GUILayout.EndHorizontal();
-
-                // Draw header
-                GUILayout.BeginHorizontal();
-                // First column is the direction
-                GUILayout.Label(" ", GUILayout.Height(30));
-                foreach (var c in m.AdjacenciesList)
-                {
-                    Texture2D tex = AssetPreview.GetAssetPreview(c.Tile);
-                    GUILayout.Label(" ", GUILayout.Height(30));
-                    if (tex != null)
-                    {
-                        var lastRec = GUILayoutUtility.GetLastRect();
-                        lastRec.width = 30;
-                        //Draws the texture where we have defined our Label (empty space)
-                        GUI.DrawTexture(lastRec, tex);
-                    }
-                }
-                // Last column is the total
-                GUILayout.Label("Total", GUILayout.Height(30));
-                GUILayout.EndHorizontal();
-
-                foreach (var r in t.Rows)
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(GetRowName(t.Rows.IndexOf(r)));
-                    {
-                        foreach(var c in r.Column)
-                        {
-                            GUILayout.Label(c.ToString("0.###"));
-                        }
-                    }
-                    // row total
-                    GUILayout.Label(r.Total().ToString());
-                    GUILayout.EndHorizontal();
-                }
+                WaveBrushUtil.DrawAdjInspector(t, m);
 
                 GUILayout.Space(15);
             }

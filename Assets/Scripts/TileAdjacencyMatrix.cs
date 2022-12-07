@@ -12,11 +12,35 @@ public class TileAdjacencyMatrix
     public Tile Tile;
     public List<MatrixRow> Rows;
 
+    public float[] TileWeights;
+    public float Entropy { get; set; }
+
     public int Sum;
 
     public TileAdjacencyMatrix()
     {
 
+    }
+
+    public List<List<float>> Columns {
+        get
+        {
+            var columns = Rows[0].Column.Length;
+            var rows = Rows.Count;
+            var data = new List<List<float>>();
+
+            for(int j = 0; j < columns; j++)
+            {
+                data.Add(new List<float>());
+                for(int i = 0; i < rows; i++)
+                {
+                    var c = data[j];
+                    c.Add(Rows[i].Column[j]);
+                }
+            }
+
+            return data;
+        }
     }
 
     public TileAdjacencyMatrix(int rows, int columns, Tile t)
@@ -27,6 +51,7 @@ public class TileAdjacencyMatrix
             Rows.Add(new MatrixRow() { Column = new float[columns] });
         }
 
+        TileWeights = new float[columns];
         Tile = t;
     }
 

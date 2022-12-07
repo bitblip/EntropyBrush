@@ -13,6 +13,16 @@ public class TileMapAdjacencyData : ScriptableObject
     public List<TileAdjacencyMatrix> AdjacenciesList;
 
     public Vector3Int[] NeighborVectors = new Vector3Int[] { Vector3Int.up, Vector3Int.right, Vector3Int.down, Vector3Int.left };
+    public static Vector3Int[] CornersAndNeighbors = new Vector3Int[] { 
+        Vector3Int.up, 
+        Vector3Int.up + Vector3Int.right, 
+        Vector3Int.right,
+        Vector3Int.right + Vector3Int.down,
+        Vector3Int.down, 
+        Vector3Int.down + Vector3Int.left,
+        Vector3Int.left,
+        Vector3Int.left + Vector3Int.up
+    };
 
     public void PrimeDictionary(bool reset = false)
     {
@@ -30,11 +40,11 @@ public class TileMapAdjacencyData : ScriptableObject
 
     public int ColumnOf(Tile t)
     {
-        foreach (var m in AdjacenciesList)
+        for (int i = 0; i < AdjacenciesList.Count; i++)
         {
-            if (m.Tile == t)
+            if (AdjacenciesList[i].Tile == t)
             {
-                return AdjacenciesList.IndexOf(m);
+                return i;
 
             }
         }
@@ -63,7 +73,7 @@ public class TileMapAdjacencyData : ScriptableObject
             foreach(var row in data.Rows)
             {
                 var total = row.Total();
-                if(1 > 0)
+                if(total > 0)
                 {
                     for (int i = 0; i < row.Column.Length; i++)
                     {
@@ -92,5 +102,65 @@ public class TileMapAdjacencyData : ScriptableObject
             }
             return null;
         }
+    }
+
+    private void InitializeAdjMatrix(TileBase[] tiles)
+    {
+        AdjacenciesList = new List<TileAdjacencyMatrix>(tiles.Length);
+        foreach (var t in tiles)
+        {
+            var adjM = new TileAdjacencyMatrix(4, tiles.Length, (Tile)t);
+            AdjacenciesList.Add(adjM);
+        }
+
+        PrimeDictionary(true);
+    }
+
+    public bool Generate(Tilemap map)
+    {
+        // Editor logic
+        var distinctSprites = new Sprite[100];
+        map.GetUsedSpritesNonAlloc(distinctSprites);
+
+        var distinctTiles = new TileBase[map.GetUsedTilesCount()];
+        map.GetUsedTilesNonAlloc(distinctTiles);
+
+        InitializeAdjMatrix(distinctTiles);
+
+        var min = map.cellBounds.min;
+        var max = map.cellBounds.max;
+        var neighborSet = NeighborVectors;
+        for (int x = min.x; x < max.x; x++)
+        {
+            for (int y = min.y; y < max.y; y++)
+            {
+                var cell = new Vector3Int(x, y);
+                var tile = map.GetTile(cell);
+                if (tile != null)
+                {
+                    var m = this[(Tile)tile];
+
+                    // add observations from adjacencies
+                    for (int row = 0; row < neighborSet.Length; row++)
+                    {
+                        var neighborVector = neighborSet[row];
+                        var tileObs = map.GetTile(cell + neighborVector);
+
+                        if (tileObs != null)
+                        {
+                            var column = this.ColumnOf((Tile)tileObs);
+                            m[row, column] += 1;
+
+                            m.Sum += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Normalize
+        Normalize();
+
+        return true;
     }
 }

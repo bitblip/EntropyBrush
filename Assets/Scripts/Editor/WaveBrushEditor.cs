@@ -14,9 +14,50 @@ public class WaveBrushEditor : GridBrushEditor
 {
     private WaveBrush waveBrush { get { return target as WaveBrush; } }
 
+    private GameObject brushTarget => GridPaintingState.scenePaintTarget;
+
+    private GridBrushEditorBase brushEditor => GridPaintingState.activeBrushEditor;
+
+    public Tilemap tilemap
+    {
+        get
+        {
+            if (brushTarget != null)
+            {
+                return brushTarget.GetComponent<Tilemap>();
+            }
+            return null;
+        }
+    }
+
     public override void OnSelectionInspectorGUI()
     {
-        GUILayout.Label("Wave tile inspect?");
+
+        var select = GridSelection.position;
+
+        // Inspecting multiple isn't really helpful
+        if (tilemap != null && select != null)
+        {
+            var t = tilemap.GetTile(select.min);
+            if (t is WaveTile waveTile)
+            {
+                // Update state from neighbors real quick
+
+                GUILayout.Label(waveTile.Position.ToString());
+
+                WaveBrushUtil.DrawAdjInspector(waveTile.State, waveBrush.TileData);
+
+                if(GUILayout.Button("Recompute"))
+                {
+                    waveTile.State = waveTile.ComputeStateMatrix(select.min, null, tilemap);
+                }
+            }
+            else if(t is Tile tile && waveBrush.TileData[tile] is TileAdjacencyMatrix def)
+            {
+                WaveBrushUtil.DrawAdjInspector(def, waveBrush.TileData);
+            }
+        }
+
         base.OnSelectionInspectorGUI();
     }
 
@@ -49,10 +90,27 @@ public class WaveBrushEditor : GridBrushEditor
         if (tileWeights == null)
             return;
 
-        // Use weights to guess neighbors
-        foreach (var n in waveBrush.TileData.NeighborVectors)
+        var cellVectors = waveBrush.GetRadiusBrushCells();
+
+        foreach (var n in cellVectors)
         {
             var p = pos + n;
+
+            // Don't preview ontop of existing tiles. thanks
+            var existingTile = tileMap.GetTile(p);
+            if (existingTile != null && !waveBrush.AutoCollapse)
+            {
+                continue;
+            }
+
+            // Don't overrwrite the sprite we're paiting with
+            if(existingTile is Tile t && cell.tile is Tile bTile)
+            {
+                if(t.sprite == bTile.sprite)
+                {
+                    continue;
+                }
+            }
 
             // Should I seed an entropy tile here? There might already be one there?
 
@@ -64,46 +122,6 @@ public class WaveBrushEditor : GridBrushEditor
             tileMap.SetEditorPreviewTile(p, entpTile);
             tileMap.SetEditorPreviewTransformMatrix(p, tileMap.orientationMatrix);
             tileMap.SetEditorPreviewColor(p, entpTile.color);
-
-            // Mark these for delete?
-
-            // The question is, what is the highest weighted tile in this direction
-            var minDelta = float.MaxValue;
-            Tile maxTile = null;
-            var rowIndex = waveBrush.TileData.RowOf(n);
-            var rand = Random.Range(0, 1f);
-            for (int i = 0; i < tileWeights.Rows[rowIndex].Column.Length; i++)
-            {
-                var weightvalue = tileWeights.Rows[rowIndex].Column[i];
-
-                if(weightvalue == 0)
-                {
-                    // So... 0 means there's no chance of this, it's really forbidden.
-                    continue;
-                }
-
-                var weightChance = weightvalue / (float)tileWeights.Sum;
-                var chanceDelta = Mathf.Abs(rand - weightChance);
-                if (chanceDelta < minDelta)
-                {
-                    minDelta = chanceDelta;
-                    maxTile = waveBrush.TileData.AdjacenciesList[i].Tile;
-                }
-            }
-
-
-            if (maxTile != null)
-            {
-                // alpha?
-                //var color = maxTile.color;
-                //maxTile.color = maxTile.color.WithAlpha(.5f);
-                //tileMap.SetEditorPreviewTile(p, maxTile);
-                //maxTile.color = color;
-                //tileMap.SetEditorPreviewTransformMatrix(p, tileMap.orientationMatrix);
-                //tileMap.SetEditorPreviewColor(p, new Color(1,1,1,.5f));
-            }
-
-            //PaintPreview(grid, brushTarget, p + n);
         }
     }
 
@@ -113,13 +131,13 @@ public class WaveBrushEditor : GridBrushEditor
 
         if(GUILayout.Button("Generate"))
         {
-            // TODO: Relocate generate to the brush
-            //if (generator.Generate())
-            //{
-            //    EditorUtility.SetDirty(genProp.objectReferenceValue);
-            //    AssetDatabase.SaveAssetIfDirty(genProp.objectReferenceValue);
-            //    AssetDatabase.Refresh();
-            //}
+            var tileMap = GridPaintingState.palette.GetComponentInChildren<Tilemap>();
+            if (waveBrush.TileData.Generate(tileMap))
+            {
+                EditorUtility.SetDirty(waveBrush.TileData);
+                AssetDatabase.SaveAssetIfDirty(waveBrush.TileData);
+                AssetDatabase.Refresh();
+            }
         }
     }
 }
