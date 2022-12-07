@@ -65,6 +65,19 @@ public class WaveBrushEditor : GridBrushEditor
     {
         base.OnPaintSceneGUI(grid, brushTarget, position, tool, executing);
 
+        // Only support selecting one tile.
+        if(brush.cellCount != 1)
+        {
+            Debug.LogWarning("Wave brush only supports selecting one tile at a time.");
+            return;
+        }
+
+        // A tile must be selected
+        if (!(brush.cells[0].tile is Tile))
+        {
+            return;
+        }
+
 
         var tileMap = brushTarget.GetComponent<Tilemap>();
         tileMap.ClearAllEditorPreviewTiles();

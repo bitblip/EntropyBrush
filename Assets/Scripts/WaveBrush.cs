@@ -14,7 +14,7 @@ public class WaveBrush : GridBrush
     public TileMapAdjacencyData TileData;
 
     [Range(1, 4)]
-    public int Size;
+    public int Size = 1;
 
     public bool AutoCollapse;
 
@@ -28,7 +28,22 @@ public class WaveBrush : GridBrush
     {
         // Lets put down the real tile and the quantum tiles
         base.Paint(grid, brushTarget, position);
+
+
         var tileMap = brushTarget.GetComponent<Tilemap>();
+        // Only draw if a tile is selected
+        if (cells.Length != 1)
+        {
+            Debug.LogWarning("Wave brush only supports selecting one tile at a time.");
+            return;
+        }
+
+        // A tile must be selected
+        if (!(cells[0].tile is Tile))
+        {
+            Debug.LogWarning("Select a tile to paint.");
+            return;
+        }
 
         tileMap.ClearAllEditorPreviewTiles();
 
