@@ -1,21 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
+/// <summary>
+/// Class used to overcome Unity yaml serilizaton. Represents one row of a matrix.
+/// </summary>
 [Serializable]
 public class MatrixRow
 {
     public float[] Column;
-
-    public float Total()
-    {
-        var sum = 0f;
-        for (int i = 0; i < Column.Length; i++)
-        {
-            sum += Column[i];
-        }
-
-        return sum;
-    }
 }

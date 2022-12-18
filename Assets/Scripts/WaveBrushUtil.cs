@@ -1,11 +1,18 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Wave Brush utility functions
+/// </summary>
 public static class WaveBrushUtil
 {
+    /// <summary>
+    /// Draw an inpector for a tile adjacency matrix
+    /// </summary>
+    /// <param name="t">The tile to draw</param>
+    /// <param name="data">The adjacency data object describing the tile matrix</param>
     public static void DrawAdjInspector(TileAdjacencyMatrix t, TileMapAdjacencyData data)
     {
         var width = Screen.width / 1.5f;
@@ -16,7 +23,7 @@ public static class WaveBrushUtil
 
         // Tile summary header
         GUILayout.Label("", GUILayout.Height(columnSize), GUILayout.Width(columnSize));
-        Texture2D texture = null;
+        Texture2D texture;
         if(t.Tile != null)
         {
             texture = AssetPreview.GetAssetPreview(t.Tile);
@@ -28,7 +35,7 @@ public static class WaveBrushUtil
             GUILayout.Label(t.Tile.name);
         }
 
-        GUILayout.Label(t.Sum.ToString());
+        GUILayout.Label(t.ObservationCount.ToString());
         GUILayout.EndHorizontal();
 
         // Header row
@@ -64,7 +71,7 @@ public static class WaveBrushUtil
                 }
             }
             // row total
-            GUILayout.Label(r.Total().ToString(), GUILayout.Width(columnSize));
+            GUILayout.Label(r.Column.Sum().ToString(), GUILayout.Width(columnSize));
             GUILayout.EndHorizontal();
         }
 
@@ -88,6 +95,11 @@ public static class WaveBrushUtil
         GUILayout.EndHorizontal();
     }
 
+    /// <summary>
+    /// Find the minimum entropy tile.
+    /// </summary>
+    /// <param name="tiles">Set of tiles to serach</param>
+    /// <returns>Minimum tile or null</returns>
     public static WaveTile GetMinEntropyTile(List<WaveTile> tiles)
     {
         if(tiles == null || tiles.Count == 0)
@@ -126,12 +138,22 @@ public static class WaveBrushUtil
         return minTiles[randIndex];
     }
 
+    /// <summary>
+    /// Influnce a region collapse first
+    /// </summary>
+    /// <param name="t">A wave tile</param>
+    /// <returns>biased value</returns>
     private static float GetBias(WaveTile t)
     {
         // hack to focus around the origin
         return Mathf.Log(Mathf.Max(1, t.Position.magnitude));
     }
 
+    /// <summary>
+    /// Convert a row number to the appropiate direction
+    /// </summary>
+    /// <param name="r">Row number</param>
+    /// <returns>Row name</returns>
     private static string GetRowName(int r)
     {
         // Hack

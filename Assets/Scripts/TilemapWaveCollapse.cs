@@ -1,24 +1,29 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UnityEngine.Tilemaps;
-using UnityEngine.UIElements;
-using static UnityEditor.PlayerSettings;
 
+/// <summary>
+/// Collapse all wave tiles in the specified Tilemap.
+/// </summary>
+[RequireComponent(typeof(Tilemap))]
 public class TilemapWaveCollapse : MonoBehaviour
 {
-    // Start is called before the first frame pdate
+    /// <summary>
+    /// The tile map
+    /// </summary>
     private Tilemap map;
-    private TileBase[] tiles;
+    /// <summary>
+    /// All tiles that need collapsed
+    /// </summary>
     private List<WaveTile> waveTiles;
-
-    public bool AutoCollapse;
+    /// <summary>
+    /// Should wave wave tiles continue infinitely.
+    /// </summary>
+    public bool InfiniteCollapse;
 
     void Start()
     {
+        // Get Tilemap component and setup collapsable tiles
         map = GetComponent<Tilemap>();
         var tiles = new TileBase[map.size.x * map.size.y];
         var totalTiles = map.GetTilesBlockNonAlloc(map.cellBounds, tiles);
@@ -31,35 +36,23 @@ public class TilemapWaveCollapse : MonoBehaviour
                 waveTiles.Add(t);
             }
         }
-
-        //StartCoroutine(DoCollapse());
     }
 
     // Update is called once per frame
     void Update()
     {
-        CollapseOne(null);
+        // Collapse one tile per frame
+        CollapseOne();
     }
 
-    public IEnumerator DoCollapse()
-    {
-        // Find the wave tile with the loest entropy
-        WaveTile waveTile = waveTiles[0];
-
-        while(waveTile != null)
-        {
-            CollapseOne(waveTile);
-
-            yield return new WaitForFixedUpdate();
-        }
-
-    }
-
-    private void CollapseOne(WaveTile waveTile)
+    /// <summary>
+    /// Find and collapse the tile with lowest entropy
+    /// </summary>
+    private void CollapseOne()
     {
         if (waveTiles.Count > 0)
         {
-            waveTile = WaveBrushUtil.GetMinEntropyTile(waveTiles);
+            var waveTile = WaveBrushUtil.GetMinEntropyTile(waveTiles);
 
             var result = waveTile.Collapse(map);
             waveTiles.Remove(waveTile);
@@ -74,7 +67,7 @@ public class TilemapWaveCollapse : MonoBehaviour
             foreach (var neighborVector in waveTile.Data.NeighborVectors)
             {
                 var neighborTile = map.GetTile(waveTile.Position + neighborVector);
-                if (neighborTile == null && AutoCollapse)
+                if (neighborTile == null && InfiniteCollapse)
                 {
                     var entpTile = ScriptableObject.CreateInstance<WaveTile>();
                     entpTile.Data = waveTile.Data;

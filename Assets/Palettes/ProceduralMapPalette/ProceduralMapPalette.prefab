@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1279297883235332553}
   - component: {fileID: 372066447484670558}
   m_Layer: 0
-  m_Name: IsoPalette
+  m_Name: ProceduralMapPalette
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56,7 +56,6 @@ GameObject:
   - component: {fileID: 1117275628317988687}
   - component: {fileID: 559090922169975316}
   - component: {fileID: 4679360622704392399}
-  - component: {fileID: 7343433728211305802}
   m_Layer: 0
   m_Name: Layer1
   m_TagString: Untagged
@@ -870,20 +869,501 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
---- !u!114 &7343433728211305802
+--- !u!114 &-5331114033242998478
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7289528225886160601}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d54c2157fa11f04d93f2dda653ff218, type: 3}
-  m_Name: 
+  m_Script: {fileID: 11500000, guid: b818896e9cd6d4146ac87f3eee19a0ae, type: 3}
+  m_Name: Palette Adjacency Data
   m_EditorClassIdentifier: 
-  Map: {fileID: 559090922169975316}
-  BrushData: {fileID: 11400000, guid: 3378076d31a1cd4459f0a712e81cd0ec, type: 2}
+  AdjacenciesList:
+  - Tile: {fileID: 11400000, guid: cf8c0318e8f6da64c92e214e74449ac0, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 4
+  - Tile: {fileID: 11400000, guid: e05d4d3ea03d21740aabb7845a16f73e, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0.25
+      - 0.25
+      - 0
+      - 0.25
+      - 0
+      - 0
+      - 0
+      - 0.25
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0.25
+      - 0.25
+      - 0
+      - 0
+      - 0
+      - 0.25
+      - 0
+      - 0
+      - 0.25
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 12
+  - Tile: {fileID: 11400000, guid: 15d385356a449b146afa5d60d219ef96, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 4
+  - Tile: {fileID: 11400000, guid: 56e0b22e319a8cb449ed867854d81cc9, type: 2}
+    Rows:
+    - Column:
+      - 0.25
+      - 0
+      - 0.25
+      - 0.25
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.25
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0.25
+      - 0.25
+      - 0.25
+      - 0
+      - 0
+      - 0.25
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 12
+  - Tile: {fileID: 11400000, guid: f29a171e013753849aa9bf5b232874d5, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 4
+  - Tile: {fileID: 11400000, guid: 248d8727b2c5e1d4682eccc60644466f, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 4
+  - Tile: {fileID: 11400000, guid: 3bea7f96923ab6d429f6eb9f4e054b55, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0.125
+      - 0
+      - 0
+      - 0.0625
+      - 0.0625
+      - 0.5
+      - 0.25
+      - 0
+    - Column:
+      - 0.0625
+      - 0
+      - 0
+      - 0.125
+      - 0
+      - 0.0625
+      - 0.5
+      - 0.25
+      - 0
+    - Column:
+      - 0.0625
+      - 0.125
+      - 0.0625
+      - 0
+      - 0
+      - 0
+      - 0.5
+      - 0.25
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0.0625
+      - 0.125
+      - 0.0625
+      - 0
+      - 0.5
+      - 0.25
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 64
+  - Tile: {fileID: 11400000, guid: fcb9393bc44098646a4f79bfe0ae656c, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.4
+      - 0.6
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.4
+      - 0.6
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.4
+      - 0.6
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.4
+      - 0.6
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 40
+  - Tile: {fileID: 11400000, guid: 3b3c6c264c195fd448e2cafe747cbd52, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 4
+  NeighborVectors:
+  - {x: 0, y: 1, z: 0}
+  - {x: 1, y: 0, z: 0}
+  - {x: 0, y: -1, z: 0}
+  - {x: -1, y: 0, z: 0}
 --- !u!114 &3734645557921450238
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,28 +1,38 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using static UnityEngine.Tilemaps.Tile;
 
+/// <summary>
+/// A custom tile representing a tile of undetermined state
+/// </summary>
 public class WaveTile : Tile
 {
+    /// <summary>
+    /// Adjacency data for the palette
+    /// </summary>
     public TileMapAdjacencyData Data;
 
+    /// <summary>
+    /// The state of this tile
+    /// </summary>
     public TileAdjacencyMatrix State;
 
+    /// <summary>
+    /// The position of this tile on the map
+    /// </summary>
     public Vector3Int Position;
 
+    /// <summary>
+    /// Update tile state
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="tilemap"></param>
     public override void RefreshTile(Vector3Int position, ITilemap tilemap)
     {
         // Save this, it's hard to figure out later
         Position = position;
 
-        // I need to know if my neighbor state has changed so I can propogate
-        // Or, I need to tell my neighbors that i have changed.
         base.RefreshTile(position, tilemap);
 
         var newState = ComputeStateMatrix(position, tilemap);
@@ -46,74 +56,81 @@ public class WaveTile : Tile
         }
     }
 
+    /// <summary>
+    /// Set of possible tiles to cycle through in an animation.
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="tilemap"></param>
+    /// <param name="tileAnimationData"></param>
+    /// <returns></returns>
     public override bool GetTileAnimationData(Vector3Int position, ITilemap tilemap, ref TileAnimationData tileAnimationData)
     {
-        var possible = GetPossibleTiles(State);
+        var possible = GetPossibleTiles();
         var sprites = new List<Sprite>();
         foreach(var t in possible)
         {
-            sprites.Add(t.sprite);
+            sprites.Add(t.Tile.sprite);
         }
 
         tileAnimationData.animatedSprites = sprites.ToArray();
 
 
-        return true;
+        return false;
     }
         
-
+    /// <summary>
+    /// Return the state of this tile as a sprite
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="tilemap"></param>
+    /// <param name="tileData"></param>
     public override void GetTileData(Vector3Int position, ITilemap tilemap, ref TileData tileData)
     {
+        // Save this, it's hard to figure out later
         Position = position;
-        // I mean, it depends on your neighbors
 
-        // I should look at my neighbors, to see who's real.
-        // compute my state based on the knowns from my neighbors
-        // if my neighbor is a Tile, it's a collapsed state and has forces my state
-        // not sure how to compute that yet
-        // if my neighbor is a WaveTile, which I'm skeptical is available on a preview step
-        // I don't want to multiply by 0 on a possiility
-        // two entropy tiles are allowed to disagree about the tile between them.
-        // how do I eliminate possibilities if 4 tiles only agree on one 1 tile possiility
-
-        // foreach neighor
-        // multiply probabilities into my own state matrix
-        // cells with non zero values are possibilities
-        // Add down the columns since the matrix is THIS cell, the direction row keeps
-        // tiles from contribuiting weight on an axis for which is has none
-
-        // First, determine is any of this is available in preview
-
+        // Update state from neighbor states
         State = ComputeStateMatrix(position, tilemap);
-        // Conceputally, at this point, statematrix has been zeroed.
-        // any survivors are allowed
-        // I wish I could visualize this in the inspector
-        // Possible if I set a real tile, I think
-        HashSet<Tile> possible = GetPossibleTiles(State);
 
+        // Merge all possible sprites
+        // TODO: Optimize? This seems expensive.
 
-        // Randomly pick from what is possible
+        var possibleTiles = GetPossibleTiles();
+        RenderTexture previewRenderTexture = null;
+        foreach(var tile in possibleTiles)
+        {
+            var texture = tile.Tile.sprite.texture;
+            // TODO: What happens when the tile textures are different sizes?
+            // TODO: Find a better way to define the render texture
+            if(previewRenderTexture == null)
+            {
+                previewRenderTexture = RenderTexture.GetTemporary(texture.width, texture.height);
+            }
+        }
+
+        // Randomly pick from possible tiles. Not weighted
+        var possible = GetPossibleTiles();
         if(possible.Count > 0)
         {
-            var pick = Random.Range(0, possible.Count);
-            var tile = possible.ElementAt(pick);
+            // take the most likely
+            var pick = possible.Last().Tile;
 
             var confidence = 1 / possible.Count;
 
             var confidenceColor = Color.Lerp(Color.red, Color.white, confidence);
 
-            tileData.sprite = tile.sprite;
-            tileData.color = tile.color * confidenceColor;
-            tileData.transform = tile.transform;
-            tileData.gameObject = tile.gameObject;
-            tileData.flags = tile.flags;
-            tileData.colliderType = tile.colliderType;
+            tileData.sprite = pick.sprite;
+            tileData.color = pick.color * confidenceColor;
+            tileData.transform = pick.transform;
+            tileData.gameObject = pick.gameObject;
+            tileData.flags = pick.flags;
+            tileData.colliderType = pick.colliderType;
         }
 
     }
 
     /// <summary>
-    /// Compute possible state from neighors
+    /// Compute  state from neighor states
     /// </summary>
     /// <param name="position"></param>
     /// <param name="tilemap"></param>
@@ -147,17 +164,14 @@ public class WaveTile : Tile
                 // are we neighboring a quantum state or a collapsed state?
                 if (neighborTile is WaveTile q)
                 {
-                    // what does this neighbor tell us about what should go here?
-                    // A neighbor wave data is contextually internal, it only has data about what is might be.
 
-                    // what does this neighbor tell us about what should go here?
-                    var data = q;
                     // I need the information from this neighbor that points at me
                     var neighborState = q.State;
                     if (neighborState != null)
                     {
                         var inboundRow = Data.RowOf(-neighborVector);
                         var inboundInfo = neighborState.Rows[inboundRow];
+
                         // Since this neighbor is a wave tile, we only multiply probability agasint the inbound row
                         for (int j = 0; j < stateMatrix.Rows[inboundRow].Column.Length; j++)
                         {
@@ -173,12 +187,9 @@ public class WaveTile : Tile
                     // I need the information from this neighbor that points at me
                     var rowNum = Data.RowOf(-neighborVector);
                     var information = data.Rows[rowNum];
-                    // Format information in from the incoming perspective
-                    // this is opposite the training data.
-
-                    // Because this is an exact tile, it is necessary to multiply out other incoming
+                    
+                    // Because this is a specific tile, it is necessary to multiply out other incoming
                     // vectors such that the collapsed tile can deny impossible probailities.
-
                     var outRow = Data.RowOf(neighborVector);
                     for (int j = 0; j < stateMatrix.Rows[outRow].Column.Length; j++)
                     {
@@ -190,7 +201,6 @@ public class WaveTile : Tile
 
         // Multiply all the columns
         // Some rows sum > 1 now, not sure if that's a problem
-        // TODO: Is it a problem if the probabilities sum > 1
         for (int j = 0; j < stateMatrix.Columns.Count; j++)
         {
             var p = 1f;
@@ -203,7 +213,6 @@ public class WaveTile : Tile
         }
 
         // Compute the shannon entropy from possile tile probailties
-        // row total
         var weightLogSum = 0f;
         var sum = stateMatrix.TileWeights.Sum();
 
@@ -215,14 +224,6 @@ public class WaveTile : Tile
             }
         }
 
-        // Quick hack, increash entropy by the log of the distance from the origin
-        // to keep it from running away in one direction.
-        var logDistance = Mathf.Log(position.magnitude);
-
-        // it might be hepful to sum the entropy of my neighbors
-        // to get a better idea of the local area entropy
-        // I think we get this for free by training on > 1X1
-
         stateMatrix.Entropy = 0;
         if (sum > 0)
         {
@@ -232,27 +233,35 @@ public class WaveTile : Tile
         return stateMatrix;
     }
 
-    private HashSet<Tile> GetPossibleTiles(TileAdjacencyMatrix stateMatrix)
+    /// <summary>
+    /// Return tiles have columns without 0 entires
+    /// </summary>
+    /// <returns>set of possible tiles</returns>
+    private List<TileWeight> GetPossibleTiles()
     {
-        // I really need to know probabilities to do this right.
-        var possible = new HashSet<Tile>();
+        var queue = new PriorityQueue<TileWeight>();
         for (int i = 0; i < State.TileWeights.Length; i++)
         {
             var v = State.TileWeights[i];
             if(v > 0)
             {
-                possible.Add(Data.AdjacenciesList[i].Tile);
+                queue.Enqueue(new TileWeight { Value = v, Tile = Data.AdjacenciesList[i].Tile });
             }
+        }
 
+        var results = new List<TileWeight>(queue.Count);
+        while(queue.Count > 0)
+        {
+            results.Add(queue.Dequeue());
         }
         
-        return possible;
+        return results;
     }
 
     /// <summary>
     /// "Collapse" this tile by picking from the possibilities and replacing the tile in the map.
     /// </summary>
-    /// <param name="map">The TileMap here the tile exists.</param>
+    /// <param name="map">The Tilemap where the tile exists.</param>
     /// <returns></returns>
     public Tile Collapse(Tilemap map)
     {

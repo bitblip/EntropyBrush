@@ -1,28 +1,97 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEditor.Tilemaps;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 using UnityEngine.Tilemaps;
-using static UnityEditor.FilePathAttribute;
-using Unity.VisualScripting;
-using System.Drawing;
+using static UnityEditor.GridPalette;
 
+/// <summary>
+/// Custom tile palette brush that can create wave tiles
+/// </summary>
 [CustomGridBrush(true, false, false, "Wave Brush")]
 public class WaveBrush : GridBrush
 {
+    /// <summary>
+    /// Adjadency data
+    /// </summary>
     public TileMapAdjacencyData TileData;
 
+    /// <summary>
+    /// Radius in which wave tiles will be placed
+    /// </summary>
     [Range(1, 4)]
     public int Size = 1;
 
+    /// <summary>
+    /// Resolve wave tile state immediatly
+    /// </summary>
     public bool AutoCollapse;
 
+    /// <summary>
+    /// Shape of the brush
+    /// </summary>
     public bool Square;
 
-    // The brush needs to keep track of the wave tiles we have created
-    // so we can collapse in order of lest entropy
-    public HashSet<WaveTile> PaintedTiles;
+    public WaveBrush() : base()
+    {
+        Debug.Log("Init?");
+    }
+    private void OnEnable()
+    {
+        Debug.Log("On enable wave brush");
+    }
+
+    private void OnDisable()
+    {
+        Debug.Log("on disable wave brush");
+    }
+
+    public override void Pick(GridLayout gridLayout, GameObject brushTarget, BoundsInt position, Vector3Int pickStart)
+    {
+        base.Pick(gridLayout, brushTarget, position, pickStart);
+
+        var tt = gridLayout.GetPrefabDefinition();
+
+        //internal static GridPalette GetGridPaletteFromPaletteAsset(Object palette)
+        //{
+        //    string assetPath = AssetDatabase.GetAssetPath(palette);
+        //    GridPalette paletteAsset = AssetDatabase.LoadAssetAtPath<GridPalette>(assetPath);
+        //    return paletteAsset;        //}
+
+        var assetPath = AssetDatabase.GetAssetPath(GridPaintingState.palette);
+        var paletteAsset = AssetDatabase.LoadAssetAtPath<GridPalette>(assetPath);
+
+        if (paletteAsset != null)
+        {
+            GameObject palette = AssetDatabase.LoadMainAssetAtPath(assetPath) as GameObject;
+
+            var existingData = AssetDatabase.LoadAssetAtPath(assetPath, typeof(TileMapAdjacencyData)) as TileMapAdjacencyData;
+
+            var subassets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (var subasset in subassets)
+            {
+                if(subasset is TileMapAdjacencyData d)
+                {
+                    AssetDatabase.RemoveObjectFromAsset(subasset);
+                }
+            }
+
+            var soi = Instantiate(TileData);
+            soi.name = "Save palette adj data here";
+            AssetDatabase.AddObjectToAsset(soi, paletteAsset);
+            AssetDatabase.SaveAssets();
+
+
+            //var inst = ScriptableObject.Instantiate(TileData);
+            //inst.name = "Test add tile data";
+
+            //AssetDatabase.AddObjectToAsset(inst, paletteAsset);
+            //PrefabUtility.ApplyPrefabInstance(palette, InteractionMode.AutomatedAction);
+            AssetDatabase.Refresh();
+        }
+    }
 
     public override void Paint(GridLayout grid, GameObject brushTarget, Vector3Int position)
     {
@@ -45,17 +114,19 @@ public class WaveBrush : GridBrush
             return;
         }
 
+        // Clear preview
         tileMap.ClearAllEditorPreviewTiles();
 
         var addTiles = new List<WaveTile>();
+        // Place Wave Tiles in all brush tiles.
         foreach(var neighbor in GetRadiusBrushCells())
         {
             var pos = position + neighbor;
-            var nTile = tileMap.GetTile(position + neighbor);
-            if(nTile == null || AutoCollapse)
+            var neighborTile = tileMap.GetTile(position + neighbor);
+            if(neighborTile == null || AutoCollapse)
             {
                 // we will not overrite existing tiles of the same sprite
-                if(nTile is Tile existingTile && cells[0].tile is Tile bTile)
+                if(neighborTile is Tile existingTile && cells[0].tile is Tile bTile)
                 {
                     if(existingTile.sprite == bTile.sprite)
                     {
@@ -63,6 +134,7 @@ public class WaveBrush : GridBrush
                     }
                 }
 
+                // Replace with an entropy tile
                 var entpTile = CreateInstance<WaveTile>();
                 entpTile.Position = pos;
                 entpTile.Data = TileData;
@@ -82,7 +154,6 @@ public class WaveBrush : GridBrush
         if(addTiles.Count > 0)
         {
             // Find the min tile.
-            // TODO: Min heap data structure. Easy to to get when open source code is allowed. Would be academic misconduct.
             var totalTiles = addTiles.Count;
             for(int i = 0; i < totalTiles; i++)
             {
@@ -95,10 +166,13 @@ public class WaveBrush : GridBrush
         }
     }
 
+    /// <summary>
+    /// The set of all tiles that exist inside the brush given Size n
+    /// </summary>
+    /// <returns>cell positions</returns>
     public List<Vector3Int> GetRadiusBrushCells()
     {
         // TODO: Something different depending on the grid cell type
-        // TODO: Radius should probably be about the brush selection
         // create a set of vectors relative to the brush origin to fill the desired size.
         var cellVectors = new List<Vector3Int>();
 
@@ -120,10 +194,5 @@ public class WaveBrush : GridBrush
         }
 
         return cellVectors;
-    }
-
-    public void CollapseWorld()
-    {
-        // Find the wave tile with the lowest entropy
     }
 }

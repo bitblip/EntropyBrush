@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2310368305030118246}
   - component: {fileID: 9211267964795417612}
   m_Layer: 0
-  m_Name: RulePalette
+  m_Name: InpaintingPalette
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -487,6 +487,16 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
+  - first: {x: 0, y: 0, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 2
+      m_TileSpriteIndex: 0
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
   - first: {x: 1, y: 0, z: 0}
     second:
       serializedVersion: 2
@@ -583,7 +593,7 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: fcb9393bc44098646a4f79bfe0ae656c, type: 2}
   - m_RefCount: 14
     m_Data: {fileID: 11400000, guid: 3bea7f96923ab6d429f6eb9f4e054b55, type: 2}
-  - m_RefCount: 9
+  - m_RefCount: 10
     m_Data: {fileID: 11400000, guid: 935be5133937c5c488b17296ed4aadad, type: 2}
   - m_RefCount: 0
     m_Data: {fileID: 0}
@@ -608,7 +618,7 @@ Tilemap:
   - m_RefCount: 10
     m_Data: {fileID: 11400000, guid: 72e7ddc4a20cc9e4eb50c7347c94a0f1, type: 2}
   m_TileSpriteArray:
-  - m_RefCount: 9
+  - m_RefCount: 10
     m_Data: {fileID: 701879119, guid: 368c7f1996f14d64fb1ced94a2067e01, type: 3}
   - m_RefCount: 2
     m_Data: {fileID: -944533857, guid: 368c7f1996f14d64fb1ced94a2067e01, type: 3}
@@ -631,7 +641,7 @@ Tilemap:
   - m_RefCount: 10
     m_Data: {fileID: -1717692198, guid: 368c7f1996f14d64fb1ced94a2067e01, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 49
+  - m_RefCount: 50
     m_Data:
       e00: 1
       e01: 0
@@ -650,7 +660,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 49
+  - m_RefCount: 50
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   - m_RefCount: 0
     m_Data: {r: NaN, g: NaN, b: NaN, a: NaN}
@@ -739,7 +749,253 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
---- !u!114 &5196078847896982005
+--- !u!114 &2487647574608247574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b818896e9cd6d4146ac87f3eee19a0ae, type: 3}
+  m_Name: Palette Adjacency Data
+  m_EditorClassIdentifier: 
+  AdjacenciesList:
+  - Tile: {fileID: 11400000, guid: fcb9393bc44098646a4f79bfe0ae656c, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0.5
+      - 0
+      - 0
+      - 0.5
+    - Column:
+      - 0
+      - 0
+      - 0.5
+      - 0
+      - 0
+      - 0.5
+    - Column:
+      - 0
+      - 0
+      - 0.5
+      - 0
+      - 0
+      - 0.5
+    - Column:
+      - 0
+      - 0
+      - 0.5
+      - 0
+      - 0
+      - 0.5
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 8
+  - Tile: {fileID: 11400000, guid: 3bea7f96923ab6d429f6eb9f4e054b55, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0.5
+      - 0.5
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0.5
+      - 0.5
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0.5
+      - 0.375
+      - 0.125
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0.5
+      - 0.375
+      - 0.125
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 32
+  - Tile: {fileID: 11400000, guid: 935be5133937c5c488b17296ed4aadad, type: 2}
+    Rows:
+    - Column:
+      - 0.11111111
+      - 0.33333334
+      - 0.44444445
+      - 0
+      - 0
+      - 0.11111111
+    - Column:
+      - 0.11111111
+      - 0.33333334
+      - 0.44444445
+      - 0
+      - 0
+      - 0.11111111
+    - Column:
+      - 0.11111111
+      - 0.44444445
+      - 0.44444445
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0.11111111
+      - 0.44444445
+      - 0.44444445
+      - 0
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 36
+  - Tile: {fileID: 11400000, guid: 51b15f71a720be24db61654219b4679b, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 1
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 2
+  - Tile: {fileID: 11400000, guid: 51d90a86bd654fa41a8d9976263b39cc, type: 2}
+    Rows:
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.5714286
+      - 0.42857143
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.5714286
+      - 0.42857143
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.5
+      - 0.5
+    - Column:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0.5
+      - 0.5
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 30
+  - Tile: {fileID: 11400000, guid: 72e7ddc4a20cc9e4eb50c7347c94a0f1, type: 2}
+    Rows:
+    - Column:
+      - 0.11111111
+      - 0
+      - 0
+      - 0
+      - 0.44444445
+      - 0.44444445
+    - Column:
+      - 0.11111111
+      - 0
+      - 0
+      - 0
+      - 0.44444445
+      - 0.44444445
+    - Column:
+      - 0.11111111
+      - 0
+      - 0.11111111
+      - 0
+      - 0.33333334
+      - 0.44444445
+    - Column:
+      - 0.11111111
+      - 0
+      - 0.11111111
+      - 0
+      - 0.33333334
+      - 0.44444445
+    TileWeights:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    ObservationCount: 36
+  NeighborVectors:
+  - {x: 0, y: 1, z: 0}
+  - {x: 1, y: 0, z: 0}
+  - {x: 0, y: -1, z: 0}
+  - {x: -1, y: 0, z: 0}
+--- !u!114 &5206943259451020398
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

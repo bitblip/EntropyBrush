@@ -1,29 +1,33 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+/// <summary>
+/// Data storage asset for a tile palette.
+/// </summary>
 [CreateAssetMenu]
 public class TileMapAdjacencyData : ScriptableObject
 {
+    /// <summary>
+    /// Lookup adjacency by tile
+    /// </summary>
     public Dictionary<Tile, TileAdjacencyMatrix> Adjacencies;
 
+    /// <summary>
+    /// Ordered list of tiles, corresponding to column.
+    /// </summary>
     public List<TileAdjacencyMatrix> AdjacenciesList;
 
+    /// <summary>
+    /// Begining with (0,1,0) (North/Up), proceeding clockwise, (1,0,0) (East/Right), (0,-1,0) (South/Down), (-1, 0, 0) (West/Left)
+    /// </summary>
     public Vector3Int[] NeighborVectors = new Vector3Int[] { Vector3Int.up, Vector3Int.right, Vector3Int.down, Vector3Int.left };
-    public static Vector3Int[] CornersAndNeighbors = new Vector3Int[] { 
-        Vector3Int.up, 
-        Vector3Int.up + Vector3Int.right, 
-        Vector3Int.right,
-        Vector3Int.right + Vector3Int.down,
-        Vector3Int.down, 
-        Vector3Int.down + Vector3Int.left,
-        Vector3Int.left,
-        Vector3Int.left + Vector3Int.up
-    };
 
+    /// <summary>
+    /// Load the de-seraized data into the lookup.
+    /// </summary>
+    /// <param name="reset">Overwrite existing state</param>
     public void PrimeDictionary(bool reset = false)
     {
         if(Adjacencies != null && !reset)
@@ -38,6 +42,11 @@ public class TileMapAdjacencyData : ScriptableObject
         }
     }
 
+    /// <summary>
+    /// Get the column number of the specified tile
+    /// </summary>
+    /// <param name="t">The tile</param>
+    /// <returns>column number of -1 if not found</returns>
     public int ColumnOf(Tile t)
     {
         for (int i = 0; i < AdjacenciesList.Count; i++)
@@ -52,6 +61,11 @@ public class TileMapAdjacencyData : ScriptableObject
         return -1;
     }
 
+    /// <summary>
+    /// Get the row number of the specified vector
+    /// </summary>
+    /// <param name="direction">The vector</param>
+    /// <returns>row number or -1 if not found</returns>
     public int RowOf(Vector3Int direction)
     {
         // TODO: Figure out how to make order part of the data
@@ -66,13 +80,16 @@ public class TileMapAdjacencyData : ScriptableObject
         return -1;
     }
 
-    internal void Normalize()
+    /// <summary>
+    /// Normalize all matrix rows so they sum to one.
+    /// </summary>
+    internal void NormalizeRowSpace()
     {
         foreach(var data in AdjacenciesList)
         {
             foreach(var row in data.Rows)
             {
-                var total = row.Total();
+                var total = row.Column.Sum();
                 if(total > 0)
                 {
                     for (int i = 0; i < row.Column.Length; i++)
@@ -86,6 +103,11 @@ public class TileMapAdjacencyData : ScriptableObject
         PrimeDictionary(true);
     }
 
+    /// <summary>
+    /// Get the adjacency matrix of the specified tile
+    /// </summary>
+    /// <param name="t">The tile</param>
+    /// <returns>adjacency matrix</returns>
     public TileAdjacencyMatrix this[Tile t]
     {
         get 
@@ -104,7 +126,11 @@ public class TileMapAdjacencyData : ScriptableObject
         }
     }
 
-    private void InitializeAdjMatrix(TileBase[] tiles)
+    /// <summary>
+    /// Setup the adjacency matrix for all tiles.
+    /// </summary>
+    /// <param name="tiles">Set of all tiles in a palette.</param>
+    private void InitAdjacencyMatrix(TileBase[] tiles)
     {
         AdjacenciesList = new List<TileAdjacencyMatrix>(tiles.Length);
         foreach (var t in tiles)
@@ -116,20 +142,27 @@ public class TileMapAdjacencyData : ScriptableObject
         PrimeDictionary(true);
     }
 
-    public bool Generate(Tilemap map)
+    /// <summary>
+    /// Enumber all grid cells in the map, counting adjacency observations.
+    /// </summary>
+    /// <param name="map">The palette map</param>
+    /// <returns>success</returns>
+    public void Generate(Tilemap map)
     {
-        // Editor logic
+        // Collect all tiles from the map
         var distinctSprites = new Sprite[100];
         map.GetUsedSpritesNonAlloc(distinctSprites);
 
         var distinctTiles = new TileBase[map.GetUsedTilesCount()];
         map.GetUsedTilesNonAlloc(distinctTiles);
 
-        InitializeAdjMatrix(distinctTiles);
+        // Setup for possible tiles
+        InitAdjacencyMatrix(distinctTiles);
 
         var min = map.cellBounds.min;
         var max = map.cellBounds.max;
         var neighborSet = NeighborVectors;
+        // Loop over the bounds of the map
         for (int x = min.x; x < max.x; x++)
         {
             for (int y = min.y; y < max.y; y++)
@@ -151,7 +184,7 @@ public class TileMapAdjacencyData : ScriptableObject
                             var column = this.ColumnOf((Tile)tileObs);
                             m[row, column] += 1;
 
-                            m.Sum += 1;
+                            m.ObservationCount += 1;
                         }
                     }
                 }
@@ -159,8 +192,6 @@ public class TileMapAdjacencyData : ScriptableObject
         }
 
         // Normalize
-        Normalize();
-
-        return true;
+        NormalizeRowSpace();
     }
 }

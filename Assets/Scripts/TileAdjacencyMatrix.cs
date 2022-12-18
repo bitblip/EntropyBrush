@@ -1,27 +1,59 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using UnityEngine.Tilemaps;
-using static UnityEditor.ObjectChangeEventStream;
 
+/// <summary>
+/// The 1x1 adjacency definition for the Tile.
+/// </summary>
 [Serializable]
 public class TileAdjacencyMatrix
 {
     public Tile Tile;
+
+    /// <summary>
+    /// The serilizable format of the matrix
+    /// </summary>
     public List<MatrixRow> Rows;
 
+    /// <summary>
+    /// Product of the weights in each column.
+    /// </summary>
     public float[] TileWeights;
+
+    /// <summary>
+    /// Total entroy of the tile
+    /// </summary>
     public float Entropy { get; set; }
 
-    public int Sum;
+    public int ObservationCount;
 
     public TileAdjacencyMatrix()
     {
 
     }
 
+    /// <summary>
+    /// Initialize a new matrix for the specified tile with with the specified size.
+    /// </summary>
+    /// <param name="rows">Number of rows</param>
+    /// <param name="columns">Number of columns</param>
+    /// <param name="t">The tile</param>
+    public TileAdjacencyMatrix(int rows, int columns, Tile t)
+    {
+        Rows = new List<MatrixRow>(rows);
+        for (int i = 0; i < rows; i++)
+        {
+            Rows.Add(new MatrixRow() { Column = new float[columns] });
+        }
+
+        TileWeights = new float[columns];
+        Tile = t;
+    }
+
+    /// <summary>
+    /// Return the matrix in column major format.
+    /// </summary>
     public List<List<float>> Columns {
         get
         {
@@ -43,24 +75,22 @@ public class TileAdjacencyMatrix
         }
     }
 
-    public TileAdjacencyMatrix(int rows, int columns, Tile t)
-    {
-        Rows = new List<MatrixRow>(rows);
-        for (int i = 0; i < rows; i++)
-        {
-            Rows.Add(new MatrixRow() { Column = new float[columns] });
-        }
-
-        TileWeights = new float[columns];
-        Tile = t;
-    }
-
+    /// <summary>
+    /// Value of the ith row and jth column.
+    /// </summary>
+    /// <param name="i">Row</param>
+    /// <param name="j">Column</param>
+    /// <returns>Aij</returns>
     public float this[int i, int j]
     {
         get => Rows[i].Column[j];
         set => Rows[i].Column[j] = value;
     }
 
+    /// <summary>
+    /// Matrix in a comma delimited format, rows seperated by new lines.
+    /// </summary>
+    /// <returns>string</returns>
     public override string ToString()
     {
         var columns = Rows[0].Column.Length;
@@ -74,11 +104,23 @@ public class TileAdjacencyMatrix
         return builder.ToString();
     }
 
+    /// <summary>
+    /// Two matrix A and B are equal if Aij = Bij for all i and j.
+    /// </summary>
+    /// <param name="left">Matrix A</param>
+    /// <param name="right">Matrix B</param>
+    /// <returns>not equal</returns>
     public static bool operator !=(TileAdjacencyMatrix left, TileAdjacencyMatrix right)
     {
         return !(left == right);
     }
 
+    /// <summary>
+    /// Two matrix A and B are equal if Aij = Bij for all i and j.
+    /// </summary>
+    /// <param name="left">Matrix A</param>
+    /// <param name="right">Matrix B</param>
+    /// <returns>equal</returns>
     public static bool operator ==(TileAdjacencyMatrix left, TileAdjacencyMatrix right)
     {
         if (left is null)
@@ -93,6 +135,11 @@ public class TileAdjacencyMatrix
         return base.GetHashCode();
     }
 
+    /// <summary>
+    /// Two matrix A and B are equal if Aij = Bij for all i and j.
+    /// </summary>
+    /// <param name="obj">Other objectd</param>
+    /// <returns>equality</returns>
     public override bool Equals(object obj)
     {
         if(obj is TileAdjacencyMatrix other)

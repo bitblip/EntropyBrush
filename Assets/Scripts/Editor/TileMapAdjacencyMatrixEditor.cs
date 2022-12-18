@@ -1,12 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using static Codice.Client.Common.Connection.AskCredentialsToUser;
 
 /// <summary>
-/// Custom editor to illustrate the generated adjencies
+/// Custom editor to illustrate the generated adjacencies
 /// </summary>
 [CustomEditor(typeof(TileMapAdjacencyData), true)]
 public class TilemapAdjacencyMatrixEditor : Editor
@@ -18,11 +14,11 @@ public class TilemapAdjacencyMatrixEditor : Editor
         adjM = serializedObject.FindProperty("Adjacencies");
     }
 
+    /// <summary>
+    /// Draw information about the selected adjacency asset
+    /// </summary>
     public override void OnInspectorGUI()
     {
-        //serializedObject.Update();
-        //EditorGUILayout.PropertyField(adjM);
-        //serializedObject.ApplyModifiedProperties();
 
         if(serializedObject.targetObject is TileMapAdjacencyData m && m.AdjacenciesList != null)
         {
@@ -39,25 +35,5 @@ public class TilemapAdjacencyMatrixEditor : Editor
             }
         }
 
-        //base.OnInspectorGUI();
-    }
-
-    private string GetRowName(int r)
-    {
-        // Hack
-        // TODO: Accomidate other dimentions
-        switch (r)
-        {
-            case 0:
-                return "N";
-            case 1:
-                return "E";
-            case 2:
-                return "S";
-            case 3:
-                return "W";
-            default:
-                return "";
-        }
     }
 }
