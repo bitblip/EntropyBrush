@@ -1,5 +1,8 @@
+using Elsheimy.Components.Linears;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -14,10 +17,16 @@ public class TileMapAdjacencyData : ScriptableObject
     /// </summary>
     public Dictionary<Tile, TileAdjacencyMatrix> Adjacencies;
 
+    public Dictionary<Tile, Matrix> Transitions;
+
     /// <summary>
     /// Ordered list of tiles, corresponding to column.
     /// </summary>
     public List<TileAdjacencyMatrix> AdjacenciesList;
+
+    public Matrix TransitionMatrix;
+
+    public string[] MatrixData;
 
     /// <summary>
     /// Begining with (0,1,0) (North/Up), proceeding clockwise, (1,0,0) (East/Right), (0,-1,0) (South/Down), (-1, 0, 0) (West/Left)
@@ -36,9 +45,25 @@ public class TileMapAdjacencyData : ScriptableObject
         }
 
         Adjacencies = new Dictionary<Tile, TileAdjacencyMatrix>();
-        foreach(var m in AdjacenciesList)
+        Transitions = new Dictionary<Tile, Matrix>();
+
+        foreach (var m in AdjacenciesList)
         {
             Adjacencies.Add(m.Tile, m);
+
+            var dimArry = new double[NeighborVectors.Count(),AdjacenciesList.Count];
+            for (int i = 0; i < m.Rows.Count; i++)
+            {
+                MatrixRow row = m.Rows[i];
+                for (int j = 0; j < row.Column.Length; j++)
+                {
+                    dimArry[i,j] = row.Column[j];
+                }
+            }
+
+            var matrix = new Matrix(dimArry);
+
+            Transitions.Add(m.Tile, matrix);
         }
     }
 
@@ -133,6 +158,8 @@ public class TileMapAdjacencyData : ScriptableObject
     private void InitAdjacencyMatrix(TileBase[] tiles)
     {
         AdjacenciesList = new List<TileAdjacencyMatrix>(tiles.Length);
+        TransitionMatrix = new Matrix(NeighborVectors.Length, tiles.Length);
+
         foreach (var t in tiles)
         {
             var adjM = new TileAdjacencyMatrix(4, tiles.Length, (Tile)t);

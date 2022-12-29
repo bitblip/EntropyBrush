@@ -1,3 +1,4 @@
+using Elsheimy.Components.Linears;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,6 +16,8 @@ public class TileAdjacencyMatrix
     /// The serilizable format of the matrix
     /// </summary>
     public List<MatrixRow> Rows;
+
+    public Matrix Matrix;
 
     /// <summary>
     /// Product of the weights in each column.
@@ -49,6 +52,8 @@ public class TileAdjacencyMatrix
 
         TileWeights = new float[columns];
         Tile = t;
+
+        Matrix = new Matrix(rows, columns);
     }
 
     /// <summary>
